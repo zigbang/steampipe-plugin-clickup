@@ -19,8 +19,13 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			TotalMaxConcurrency: 10,
 		},
 		TableMap: map[string]*plugin.Table{
-			"clickup_team":        tableClickupTeam(ctx),
-			"clickup_team_member": tableClickupTeamMember(ctx),
+			"clickup_folder":          tableClickupFolder(ctx),
+			"clickup_folderless_list": tableClickupFolderlessList(ctx),
+			"clickup_list":            tableClickupList(ctx),
+			"clickup_space":           tableClickupSpace(ctx),
+			"clickup_task":            tableClickupTask(ctx),
+			"clickup_team":            tableClickupTeam(ctx),
+			"clickup_team_member":     tableClickupTeamMember(ctx),
 		},
 	}
 	return p
