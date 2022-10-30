@@ -1,26 +1,27 @@
 package clickup
 
 import (
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/schema"
+    "github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+    "github.com/turbot/steampipe-plugin-sdk/v4/plugin/schema"
 )
 
-type clickupConfig struct {
-	Token *string `cty:"token"`
+type PluginConfig struct {
+    Token *string `cty:"token"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
-	"token": {Type: schema.TypeString},
+    "token": {Type: schema.TypeString},
 }
 
 func ConfigInstance() interface{} {
-	return &clickupConfig{}
+    return &PluginConfig{}
 }
 
-func GetConfig(connection *plugin.Connection) clickupConfig {
-	if connection == nil || connection.Config == nil {
-		return clickupConfig{}
-	}
-	config, _ := connection.Config.(clickupConfig)
-	return config
+func GetConfig(connection *plugin.Connection) PluginConfig {
+    if connection == nil || connection.Config == nil {
+        return PluginConfig{}
+    }
+
+    config, _ := connection.Config.(PluginConfig)
+    return config
 }

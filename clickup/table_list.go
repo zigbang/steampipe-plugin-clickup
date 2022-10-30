@@ -1,58 +1,118 @@
 package clickup
 
 import (
-	"context"
+    "context"
+    "fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+    "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+    "github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+    "github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-func tableClickupList(ctx context.Context) *plugin.Table {
-	return &plugin.Table{
-		Name: "clickup_list",
-		List: &plugin.ListConfig{
-			KeyColumns: plugin.SingleColumn("folder_id"),
-			Hydrate:    listLists,
-		},
-		Columns: []*plugin.Column{
-			{Name: "folder_id", Type: proto.ColumnType_STRING, Hydrate: folderId, Transform: transform.FromValue()},
-			{Name: "id", Type: proto.ColumnType_STRING},
-			{Name: "name", Type: proto.ColumnType_STRING},
-			{Name: "overrideindex", Type: proto.ColumnType_INT},
-			{Name: "content", Type: proto.ColumnType_STRING},
-			// status
-			// priority
-			// assignee
-			{Name: "task_count", Type: proto.ColumnType_STRING},
-			// due_date
-			// start_date
-			// folder
-			// space
-			{Name: "archived", Type: proto.ColumnType_BOOL},
-			{Name: "override_statuses", Type: proto.ColumnType_BOOL},
-			{Name: "permission_level", Type: proto.ColumnType_STRING},
-		},
-	}
+func tableClickupList() *plugin.Table {
+    return &plugin.Table{
+        Name: "clickup_list",
+        List: &plugin.ListConfig{
+            KeyColumns: plugin.SingleColumn("folder_id"),
+            Hydrate:    listLists,
+        },
+        Columns: listColumns(),
+    }
 }
 
 func listLists(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// logger := plugin.Logger(ctx)
+    folderId := d.KeyColumnQuals["folder_id"].GetStringValue()
 
-	folder_id := d.KeyColumnQuals["folder_id"].GetStringValue()
+    client, err := connect(ctx, d)
+    if err != nil {
+        return nil, fmt.Errorf("unable to establish a connection: %v", err)
+    }
 
-	client, _ := connect(ctx, d)
-	items, _, _ := client.Lists.GetLists(ctx, folder_id, false)
+    items, _, err := client.Lists.GetLists(ctx, folderId, false)
+    if err != nil {
+        return nil, fmt.Errorf("unable to obtain lists for folder id '%s': %v", folderId, err)
+    }
 
-	for _, t := range items {
-		d.StreamListItem(ctx, t)
-	}
+    for _, t := range items {
+        d.StreamListItem(ctx, t)
+    }
 
-	return nil, nil
+    return nil, nil
 }
 
-func folderId(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	q := quals["folder_id"].GetStringValue()
-	return q, nil
+func listColumns() []*plugin.Column {
+    return []*plugin.Column{
+        {
+            Name:      "folder_id",
+            Type:      proto.ColumnType_STRING,
+            Transform: transform.FromQual("folder_id"),
+        },
+        {
+            Name: "id",
+            Type: proto.ColumnType_STRING,
+        },
+        {
+            Name: "name",
+            Type: proto.ColumnType_STRING,
+        },
+        {
+            Name:      "order_index",
+            Type:      proto.ColumnType_INT,
+            Transform: transform.FromField("Orderindex"),
+        },
+        {
+            Name: "content",
+            Type: proto.ColumnType_STRING,
+        },
+        {
+            Name:      "status",
+            Type:      proto.ColumnType_STRING,
+            Transform: transform.FromField("Status.Status"),
+        },
+        {
+            Name:      "priority",
+            Type:      proto.ColumnType_STRING,
+            Transform: transform.FromField("Priority.Priority"),
+        },
+        {
+            Name:      "assignee",
+            Type:      proto.ColumnType_STRING,
+            Transform: transform.FromField("Assignee.Username"),
+        },
+        {
+            Name:      "assignee_email",
+            Type:      proto.ColumnType_STRING,
+            Transform: transform.FromField("Assignee.Email"),
+        },
+        {
+            Name: "task_count",
+            Type: proto.ColumnType_STRING,
+        },
+        {
+            Name: "due_date",
+            Type: proto.ColumnType_STRING,
+        },
+        {
+            Name: "start_date",
+            Type: proto.ColumnType_STRING,
+        },
+        {
+            Name:      "folder",
+            Type:      proto.ColumnType_STRING,
+            Transform: transform.FromField("Folder.Name"),
+        },
+        {
+            Name:      "space",
+            Type:      proto.ColumnType_STRING,
+            Transform: transform.FromField("Space.Name"),
+        },
+        {
+            Name: "archived",
+            Type: proto.ColumnType_BOOL,
+        },
+        {
+            Name: "permission_level",
+            Type: proto.ColumnType_STRING,
+        },
+    }
 }
