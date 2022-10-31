@@ -1,62 +1,81 @@
 # ClickUp Plugin for Steampipe
 
-## Installing and Testing the Plugin
+Use SQL to query information including teams, lists & spaces from ClickUp.
 
-To install the plugin, simple run the following command.
+- **[Get started →](https://hub.steampipe.io/plugins/zigbang/clickup)**
+- Documentation: [Table definitions & examples](https://hub.steampipe.io/plugins/zigbang/clickup/tables)
+- Community: [Slack Channel](https://steampipe.io/community/join)
+- Get involved: [Issues](https://github.com/zigbang/steampipe-plugin-clickup/issues)
 
-```
-% make local
-go build -o  ~/.steampipe/plugins/local/clickup/clickup.plugin *.go
-```
+## Quick start
 
-Check your local plugin using the following command.
+Install the plugin with [Steampipe](https://steampipe.io):
 
-```
-% steampipe plugin list
-+--------------------------------------------------+---------+-------------+
-| Name                                             | Version | Connections |
-+--------------------------------------------------+---------+-------------+
-| hub.steampipe.io/plugins/turbot/aws@latest       | 0.57.0  | aws         |
-| hub.steampipe.io/plugins/turbot/steampipe@latest | 0.2.0   | steampipe   |
-| local/clickup                                    | local   |             |
-+--------------------------------------------------+---------+-------------+
+```shell
+steampipe plugin install zigbang/clickup
 ```
 
-Copy the sample `clickup.spc` file to `~/.steampipe/config` folder and change the name of the `plugin` from `clickup` to `local/clickup`.
+Setup the configuration:
 
-```
-% cat ~/.steampipe/config/clickup.spc
-connection "clickup" {
-    plugin = "local/clickup"
-
-    token = "YOUR_API_TOKEN_HERE"
-}
+```shell
+vi ~/.steampipe/config/clickup.spc
 ```
 
-Check and see if you have a valid connection.
+or set the following Environment Variables
 
-```
-% steampipe plugin list
-+--------------------------------------------------+---------+-------------+
-| Name                                             | Version | Connections |
-+--------------------------------------------------+---------+-------------+
-| hub.steampipe.io/plugins/turbot/aws@latest       | 0.57.0  | aws         |
-| hub.steampipe.io/plugins/turbot/steampipe@latest | 0.2.0   | steampipe   |
-| local/clickup                                    | local   | clickup     |
-+--------------------------------------------------+---------+-------------+
-```
+- `CLICKUP_TOKEN` : The API Key / Token to use.
 
-Let's test the plugin.
+Run a query:
 
-```
-% % steampipe query "select count(*) from clickup_team" --timing
-+-------+
-| count |
-+-------+
-| 2     |
-+-------+
-
-Time: 1.73914125s
+Interactive Mode:
+```sql
+select
+  *
+from
+  clickup_team;
 ```
 
-That's it.
+or from CLI:
+```shell
+steampipe query "select * from clickup_team"
+```
+
+## Developing
+
+Prerequisites:
+
+- [Steampipe](https://steampipe.io/downloads)
+- [Golang](https://golang.org/doc/install)
+- [ClickUp API Token](https://clickup.com/api/developer-portal/authentication#personal-token)
+
+Clone:
+
+```sh
+git clone https://github.com/zigbang/steampipe-plugin-clickup.git
+cd steampipe-plugin-clickup
+```
+
+Build, which automatically installs the new version to your `~/.steampipe/plugins` directory:
+
+```shell
+make
+```
+
+Configure the plugin:
+
+```
+cp config/* ~/.steampipe/config
+vi ~/.steampipe/config/clickup.spc
+```
+
+Try it!
+
+```
+steampipe query
+> .inspect clickup
+```
+
+Further reading:
+
+- [Writing plugins](https://steampipe.io/docs/develop/writing-plugins)
+- [Writing your first table](https://steampipe.io/docs/develop/writing-your-first-table)
